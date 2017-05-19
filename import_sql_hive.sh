@@ -53,6 +53,10 @@ hive -e "CREATE DATABASE IF NOT EXISTS ${DATABASEN};"
 # puts them in Hive
 hadoop fs -rm -r -skipTrash /user/$USER/user
 hadoop fs -rm -r -skipTrash /user/$USER/activitylog
+hadoop fs -rm -r -skipTrash /user/hive/warehouse/user
+hadoop fs -rm -r -skipTrash /user/hive/warehouse/activitylog
+
+hive -e "USE ${DATABASEN}; DROP TABLE IF EXISTS user; DROP TABLE IF EXISTS activitylog;"
 
 echo "import user"
 echo "import user"
