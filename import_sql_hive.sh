@@ -1,5 +1,5 @@
 # this assumes that there are the two tables in the given database name
-#!/bin/bash
+#!/bin/sh
 
 usage() 
 { 
@@ -9,14 +9,14 @@ This script imports tables from the given database into hive.
 OPTIONS: 
 -h Show this message 
 -u mysql_user 
--p mysql_password_file_location 
+-p mysql_password
 -d database_name
 EOF
 } 
 
-USER= 
-PASS= 
-DATABASE= 
+USERN= 
+PASSW= 
+DATABASEN= 
 while getopts “hu:p:d:” OPTION 
 do 
 case $OPTION in 
@@ -25,65 +25,57 @@ usage
 exit 1 
 ;; 
 u) 
-USER=$OPTARG 
+USERN=$OPTARG 
 ;; 
 p) 
-PASS=$OPTARG 
+PASSW=$OPTARG 
 ;; 
 d) 
-DATABASE=$OPTARG 
+DATABASEN=$OPTARG 
 ;; 
 ?) 
 usage 
 exit 
-;; 
+;;
 esac 
 done 
-if [[ -z $USER ]] || [[ -z $PASS ]] || [[ -z $DATABASE ]] 
+if [[ -z $USERN ]] || [[ -z $PASSW ]] || [[ -z $DATABASEN ]] 
 then 
 usage 
 exit 1 
 fi
 
-hive -e “CREATE DATABASE IF NOT EXISTS $DATABASE;”
-
-# puts them in HDBC
-sqoop import \ 
---connect jdbc:mysql://localhost/$DATABASE \ 
---username $USER \ 
---password-file $PASS \ 
---table user \ 
--m 1 \ 
---target-dir /user/hive/warehouse/user
-
-sqoop import \ 
---connect jdbc:mysql://localhost/$DATABASE \ 
---username $USER \ 
---password-file $PASS \ 
---table activitylog \ 
---target-dir /user/hive/warehouse/activitylog
+echo "create database"
+echo "create database"
+echo "create database"
+hive -e "CREATE DATABASE IF NOT EXISTS ${DATABASEN};"
 
 # puts them in Hive
 hadoop fs -rm -r -skipTrash /user/$USER/user
-
-sqoop import \ 
---connect jdbc:mysql://localhost/$DATABASE \ 
---username $USER \ 
---password-file $PASS \ 
---table user \ 
--m 1 \ 
---hive-import \ 
---hive-database $DATABASE \ 
---hive-table user
-
 hadoop fs -rm -r -skipTrash /user/$USER/activitylog
 
-sqoop import \ 
---connect jdbc:mysql://localhost/$DATABASE \ 
---username $USER \ 
---password-file $PASS \ 
---table activitylog \ 
--m 1 \ 
---hive-import \ 
---hive-database $DATABASE \ 
+echo "import user"
+echo "import user"
+echo "import user"
+sqoop import \
+--connect jdbc:mysql://localhost/$DATABASEN \
+--username $USERN \
+--password $PASSW \
+--table user \
+-m 1 \
+--hive-import \
+--hive-database $DATABASEN \
+--hive-table user
+
+echo "import log"
+echo "import log"
+echo "import log"
+sqoop import \
+--connect jdbc:mysql://localhost/$DATABASEN \
+--username $USERN \
+--password $PASSW \
+--table activitylog \
+-m 1 \
+--hive-import \
+--hive-database $DATABASEN \
 --hive-table activitylog
