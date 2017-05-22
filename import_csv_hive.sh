@@ -12,6 +12,7 @@ OPTIONS:
 EOF
 } 
 
+# makes sure that the args are correct
 DATABASEN= 
 while getopts “hd:” OPTION 
 do 
@@ -35,6 +36,7 @@ usage
 exit 1 
 fi
 
+# corrects file names for colons and periods
 cd user_upload
 for f in *:*;
 do mv -v "$f" $(echo "$f" | tr ':' '-');
@@ -51,13 +53,17 @@ for fname in *; do
 done
 cd ..
 
+# imports from local to HDFS
 hadoop fs -mkdir -p /app/data/user_upload
 hadoop fs -put user_upload/* /app/data/user_upload
 
+# makes database
 hive -e "CREATE DATABASE IF NOT EXISTS ${DATABASEN};"
 
+# clears old table
 hadoop fs -rm -r -skipTrash /user/$USER/user_upload
 
+# makes new user_uploads table with data in HDFS folder
 hive -e "USE ${DATABASEN};
 DROP TABLE IF EXISTS user_uploads;
 CREATE EXTERNAL TABLE user_uploads (user_id INT, file_name STRING, timestamp BIGINT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE LOCATION '/app/data/user_upload' TBLPROPERTIES ('skip.header.line.count'='1');"

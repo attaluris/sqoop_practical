@@ -14,6 +14,7 @@ OPTIONS:
 EOF
 } 
 
+# makes sure args are correct
 USERN= 
 PASSW= 
 DATABASEN= 
@@ -45,21 +46,19 @@ usage
 exit 1 
 fi
 
-echo "create database"
-echo "create database"
+
+# creates the databases
 echo "create database"
 hive -e "CREATE DATABASE IF NOT EXISTS ${DATABASEN};"
 
-# puts them in Hive
+# clear existing data
 hadoop fs -rm -r -skipTrash /user/$USER/user
 hadoop fs -rm -r -skipTrash /user/$USER/activitylog
 hadoop fs -rm -r -skipTrash /user/hive/warehouse/user
 hadoop fs -rm -r -skipTrash /user/hive/warehouse/activitylog
-
 hive -e "USE ${DATABASEN}; DROP TABLE IF EXISTS user; DROP TABLE IF EXISTS activitylog;"
 
-echo "import user"
-echo "import user"
+# imports user from mysql
 echo "import user"
 sqoop import \
 --connect jdbc:mysql://localhost/$DATABASEN \
@@ -71,8 +70,7 @@ sqoop import \
 --hive-database $DATABASEN \
 --hive-table user
 
-echo "import log"
-echo "import log"
+# imports activitylog from mysql
 echo "import log"
 sqoop import \
 --connect jdbc:mysql://localhost/$DATABASEN \
