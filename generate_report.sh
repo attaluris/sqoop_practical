@@ -38,6 +38,10 @@ fi
 
 # clears user_report
 hive -e "USE ${DATABASEN}; DROP TABLE IF EXISTS user_report;"
+if [ $? -eq 0 ];
+then echo "deleted old user_report"
+else echo "could not delete old user_report"
+fi
 
 # Robert’s user_report commands
 hive -e "USE ${DATABASEN};
@@ -58,6 +62,11 @@ JOIN (SELECT user_id, max(timestamp) AS last_activity_time FROM activitylog GROU
 LEFT JOIN (SELECT user_id, (($TIME - max(timestamp)) < 172800) AS is_active FROM activitylog GROUP BY user_id) AS a_is_active ON u.id = a_is_active.user_id
 LEFT JOIN (SELECT user_id, count(*) AS upload_count FROM user_uploads GROUP BY user_id) AS a_upload_count ON u.id = a_upload_count.user_id
 ORDER BY u.id ASC;"
+if [ $? -eq 0 ];
+then echo "made new user_report"
+else echo "could not make new user_report"
+exit
+fi
 
 # user_totals commands
 hive -e "USE ${DATABASEN}; 
@@ -67,3 +76,8 @@ select $TIME,
 count(distinct u.id), 
 CASE WHEN count(distinct ut.total_users)=0 THEN count(distinct u.id) ELSE count(distinct u.id) - max(struct(ut.time_ran, ut.total_users)).col2 END as users_added
 FROM user as u, user_totals as ut;"
+if [ $? -eq 0 ];
+then echo "made new user_totals"
+else echo "could not make new user_totals"
+exit
+fi
