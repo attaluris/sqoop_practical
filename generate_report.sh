@@ -82,7 +82,7 @@ LEFT JOIN (SELECT user_id, count(*) total_updates FROM activitylog WHERE type = 
 LEFT JOIN (SELECT user_id, count(*) total_inserts FROM activitylog WHERE type = 'INSERT' AND (($TIME - timestamp) < 172800) GROUP BY user_id) AS a_insert ON ur.id = a_insert.user_id
 LEFT JOIN (SELECT user_id, count(*) total_deletes FROM activitylog WHERE type = 'DELETE' AND (($TIME - timestamp) < 172800) GROUP BY user_id) AS a_delete ON ur.id = a_delete.user_id
 LEFT JOIN (SELECT user_id, count(*) AS upload_count FROM user_uploads WHERE (($TIME - timestamp) < 172800) GROUP BY user_id) AS a_upload_count ON ur.id = a_upload_count.user_id
-ORDER BY a_upload_count.upload_count DESC;"
+ORDER BY upload_count DESC;"
 if [ $? -eq 0 ];
 then echo "made new active_user_report"
 else echo "could not make new active_user_report"
