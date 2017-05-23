@@ -97,7 +97,8 @@ INSERT INTO TABLE user_totals
 select $TIME, 
 count(distinct u.id), 
 CASE WHEN count(distinct ut.total_users)=0 THEN count(distinct u.id) ELSE count(distinct u.id) - max(struct(ut.time_ran, ut.total_users)).col2 END as users_added
-FROM user as u FULL JOIN user_totals as ut;"
+FROM user as u FULL JOIN user_totals as ut
+ORDER BY time_ran ASC;"
 if [ $? -eq 0 ];
 then echo "made new user_totals"
 else echo "could not make new user_totals"
