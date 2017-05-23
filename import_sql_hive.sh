@@ -47,7 +47,7 @@ exit 1
 fi
 
 
-# creates the databases
+# creates the database
 hive -e "CREATE DATABASE IF NOT EXISTS ${DATABASEN};"
 if [ $? -eq 0 ];
 then echo "created database"
@@ -75,9 +75,7 @@ fi
 # clear existing data
 hadoop fs -rm -r -skipTrash /user/$USER/user
 hadoop fs -rm -r -skipTrash /user/$USER/activitylog
-hadoop fs -rm -r -skipTrash /user/hive/warehouse/user
-hadoop fs -rm -r -skipTrash /user/hive/warehouse/activitylog
-hive -e "USE ${DATABASEN}; DROP TABLE IF EXISTS user; DROP TABLE IF EXISTS activitylog;"
+hive -e "USE ${DATABASEN}; DROP TABLE IF EXISTS user;"
 if [ $? -eq 0 ];
 then echo "deleted old tables"
 else echo "could not delete old tables"
@@ -92,7 +90,7 @@ sqoop import \
 --username $USERN \
 --password-file /user/$USER/password.txt \
 --table user \
--m 1 \
+-m 4 \
 --hive-import \
 --hive-database $DATABASEN \
 --hive-table user
@@ -102,19 +100,47 @@ else echo "could not import user"
 exit
 fi
 
-# imports activitylog from mysql
+nohup sqoop metastore &
+
+# made activitylog job from mysql
 echo "import log"
-sqoop import \
+sqoop job \
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop \
+--create ${DATABASEN}.activitylog \
+-- import \
 --connect jdbc:mysql://localhost/$DATABASEN \
 --username $USERN \
 --password-file /user/$USER/password.txt \
 --table activitylog \
--m 1 \
+-m 4 \
 --hive-import \
 --hive-database $DATABASEN \
---hive-table activitylog
+--hive-table activitylog \
+--incremental append \
+--check-column id \
+--last-value 0
 if [ $? -eq 0 ];
-then echo "imported activitylog"
-else echo "could not import activitylog"
+then echo "made the activitylog job"
+else echo "could not make the activitylog job"
+# if there's a problem (already exists), tries to run the job anyway
+sqoop job \
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop \
+--exec ${DATABASEN}.activitylog  
+if [ $? -eq 0 ];
+# exits if it works or if it doesn't
+then echo "finished the activitylog job"
+exit
+else echo "could not finish the activitylog job"
+exit
+fi
+fi
+
+#runs the job if if hasn't been already
+sqoop job \
+--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop \
+--exec ${DATABASEN}.activitylog  
+if [ $? -eq 0 ];
+then echo "finished the activitylog job"
+else echo "could not finish the activitylog job"
 exit
 fi

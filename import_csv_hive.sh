@@ -45,11 +45,11 @@ exit
 fi
 for f in *:*;
 do mv -v "$f" $(echo "$f" | tr ':' '-');
-done
 if [ $? -eq 0 ];
 then echo "got rid of colons"
 else echo "could not get rid of colons"
 fi
+done
 for fname in *; do
   name="${fname%\.*}"
   extension="${fname#$name}"
@@ -88,12 +88,6 @@ else echo "could not create the database"
 exit
 fi
 
-# clears old table
-hadoop fs -rm -r -skipTrash /user/$USER/user_upload
-if [ $? -eq 0 ];
-then echo "cleared old table"
-else echo "could not clear old table"
-fi
 
 # makes new user_uploads table with data in HDFS folder
 hive -e "USE ${DATABASEN};
