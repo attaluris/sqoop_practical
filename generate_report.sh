@@ -36,16 +36,9 @@ usage I
 exit 1 
 fi
 
-# clears user_report
-hive -e "USE ${DATABASEN}; DROP TABLE IF EXISTS user_report; DROP TABLE IF EXISTS active_user_report;"
-if [ $? -eq 0 ];
-then echo "deleted old user reports"
-else echo "could not delete old user reports"
-fi
-
 # Robert’s user_report commands
 hive -e "USE ${DATABASEN};
-CREATE TABLE IF NOT EXISTS user_report AS SELECT
+INSERT OVERWRITE TABLE user_report SELECT
 u.id,
 CASE WHEN a_update.total_updates IS NULL THEN 0 ELSE a_update.total_updates END AS total_updates,
 CASE WHEN a_insert.total_inserts IS NULL THEN 0 ELSE a_insert.total_inserts END AS total_inserts,
@@ -65,12 +58,12 @@ ORDER BY u.id ASC;"
 if [ $? -eq 0 ];
 then echo "made new user_report"
 else echo "could not make new user_report"
-exit
+exit 1
 fi
 
 # active_user_report commands
 hive -e "USE ${DATABASEN};
-CREATE TABLE IF NOT EXISTS active_user_report AS SELECT
+INSERT OVERWRITE TABLE active_user_report SELECT
 ur.id,
 CASE WHEN a_update.total_updates IS NULL THEN 0 ELSE a_update.total_updates END AS total_updates,
 CASE WHEN a_insert.total_inserts IS NULL THEN 0 ELSE a_insert.total_inserts END AS total_inserts,
@@ -86,7 +79,7 @@ ORDER BY upload_count DESC;"
 if [ $? -eq 0 ];
 then echo "made new active_user_report"
 else echo "could not make new active_user_report"
-exit
+exit 1
 fi
 
 
@@ -94,13 +87,13 @@ fi
 hive -e "USE ${DATABASEN}; 
 CREATE TABLE IF NOT EXISTS user_totals (time_ran BIGINT, total_users INT, users_added INT); 
 INSERT INTO TABLE user_totals 
-select $TIME, 
-count(distinct u.id), 
+select $TIME as time_ran, 
+count(distinct u.id) as total_users, 
 CASE WHEN count(distinct ut.total_users)=0 THEN count(distinct u.id) ELSE count(distinct u.id) - max(struct(ut.time_ran, ut.total_users)).col2 END as users_added
-FROM user as u FULL JOIN user_totals as ut
+FROM user as u FULL JOIN user_totals as ut ON u.id = ut.time_ran
 ORDER BY time_ran ASC;"
 if [ $? -eq 0 ];
 then echo "made new user_totals"
 else echo "could not make new user_totals"
-exit
+exit 1
 fi

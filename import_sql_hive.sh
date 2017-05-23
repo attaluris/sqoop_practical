@@ -1,4 +1,6 @@
 # this assumes that there are the two tables in the given database name
+# assumes that the user has loaded up the metastore with "nohup sqoop metastore &"
+# this also assumes that there is an existing mySQL password file on HDFS
 #!/bin/sh
 
 usage() 
@@ -54,63 +56,42 @@ then echo "created database"
 else echo "could not create database"
 fi
 
-# imports the password from local to HDFS
-hadoop fs -mkdir -p /user/$USER
-if [ $? -eq 0 ];
-then echo "hadoop password directory exists"
-else echo "could not create password directory"
-fi
-hadoop fs -rm -r /user/$USER/password.txt
-if [ $? -eq 0 ];
-then echo "removed old password file"
-else echo "could not remove old password file"
-fi
-hadoop fs -put $PASSW /user/$USER/password.txt
-if [ $? -eq 0 ];
-then echo "copied password file"
-else echo "could not copy password file"
-exit
-fi
-
 # clear existing data
 hadoop fs -rm -r -skipTrash /user/$USER/user
 hadoop fs -rm -r -skipTrash /user/$USER/activitylog
-hive -e "USE ${DATABASEN}; DROP TABLE IF EXISTS user;"
-if [ $? -eq 0 ];
-then echo "deleted old tables"
-else echo "could not delete old tables"
-exit
-fi
-
 
 # imports user from mysql
 echo "import user"
 sqoop import \
 --connect jdbc:mysql://localhost/$DATABASEN \
 --username $USERN \
---password-file /user/$USER/password.txt \
+--password-file $PASSW \
 --table user \
 -m 4 \
 --hive-import \
+--hive-overwrite \
 --hive-database $DATABASEN \
 --hive-table user
 if [ $? -eq 0 ];
 then echo "imported user"
 else echo "could not import user"
-exit
+exit 1
 fi
 
-nohup sqoop metastore &
+# finds if the job exists
+numJobs=$(sqoop job \--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop \--list | grep -c "practical_exercise_1.activitylog")
+echo "$numJobs jobs exist with that name"
 
-# made activitylog job from mysql
-echo "import log"
+if [ $numJobs -eq 0 ];
+then
+# make activitylog job from mysql
 sqoop job \
 --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop \
 --create ${DATABASEN}.activitylog \
 -- import \
 --connect jdbc:mysql://localhost/$DATABASEN \
 --username $USERN \
---password-file /user/$USER/password.txt \
+--password-file $PASSW \
 --table activitylog \
 -m 4 \
 --hive-import \
@@ -122,16 +103,7 @@ sqoop job \
 if [ $? -eq 0 ];
 then echo "made the activitylog job"
 else echo "could not make the activitylog job"
-# if there's a problem (already exists), tries to run the job anyway
-sqoop job \
---meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop \
---exec ${DATABASEN}.activitylog  
-if [ $? -eq 0 ];
-# exits if it works or if it doesn't
-then echo "finished the activitylog job"
-exit
-else echo "could not finish the activitylog job"
-exit
+exit 1
 fi
 fi
 
@@ -142,5 +114,5 @@ sqoop job \
 if [ $? -eq 0 ];
 then echo "finished the activitylog job"
 else echo "could not finish the activitylog job"
-exit
+exit 1
 fi
