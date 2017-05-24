@@ -56,9 +56,9 @@ LEFT JOIN (SELECT user_id, (($TIME - max(timestamp)) < 172800) AS is_active FROM
 LEFT JOIN (SELECT user_id, count(*) AS upload_count FROM user_uploads GROUP BY user_id) AS a_upload_count ON u.id = a_upload_count.user_id
 ORDER BY u.id ASC;"
 if [ $? -eq 0 ];
-then echo "made new user_report"
-else echo "could not make new user_report"
-exit 1
+    then echo "made new user_report"
+    else echo "could not make new user_report"
+    exit 1
 fi
 
 # active_user_report commands
@@ -77,9 +77,9 @@ LEFT JOIN (SELECT user_id, count(*) total_deletes FROM activitylog WHERE type = 
 LEFT JOIN (SELECT user_id, count(*) AS upload_count FROM user_uploads WHERE (($TIME - timestamp) < 172800) GROUP BY user_id) AS a_upload_count ON ur.id = a_upload_count.user_id
 ORDER BY upload_count DESC;"
 if [ $? -eq 0 ];
-then echo "made new active_user_report"
-else echo "could not make new active_user_report"
-exit 1
+    then echo "made new active_user_report"
+    else echo "could not make new active_user_report"
+    exit 1
 fi
 
 
@@ -93,7 +93,7 @@ CASE WHEN count(distinct ut.total_users)=0 THEN count(distinct u.id) ELSE count(
 FROM user as u FULL JOIN user_totals as ut ON u.id = ut.time_ran
 ORDER BY time_ran ASC;"
 if [ $? -eq 0 ];
-then echo "made new user_totals"
-else echo "could not make new user_totals"
-exit 1
+    then echo "made new user_totals"
+    else echo "could not make new user_totals"
+    exit 1
 fi
