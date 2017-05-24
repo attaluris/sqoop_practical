@@ -70,7 +70,7 @@ done
 
 cd ..
 
-# imports new files from local to HDFS
+# makes sure that the destination folders exist
 hadoop fs -mkdir -p /app/data/user_upload
 if [ $? -eq 0 ];
     then echo "HDFS user_upload exists"
@@ -78,14 +78,6 @@ if [ $? -eq 0 ];
     exit 1
 fi
 
-hadoop fs -put user_upload/* /app/data/user_upload
-if [ $? -eq 0 ]; 
-    then echo "added new dumps"
-    else echo "could not add new dumps"
-    exit 1
-fi
-
-# imports new files to processed folder
 mkdir -p processed
 if [ $? -eq 0 ];
     then echo "processed exists"
@@ -93,13 +85,22 @@ if [ $? -eq 0 ];
     exit 1
 fi
 
-mv user_upload/* processed
-if [ $? -eq 0 ];
-    then echo "moved new dumps to processed"
-    else echo "could not move new dumps to processed"
-    exit 1
-fi
+# puts the files in their necessary places
+for fname in user_upload/*; do
+    hadoop fs -put $fname /app/data/user_upload
+    if [ $? -eq 0 ]; 
+	then echo "added new dumps to HDFS"
+	else echo "could not add new dumps to HDFS"
+	exit 1
+    fi
 
+    mv $fname processed
+    if [ $? -eq 0 ];
+	then echo "moved new dumps to processed"
+	else echo "could not move new dumps to processed"
+	exit 1
+    fi
+done
 
 # makes database
 hive -e "CREATE DATABASE IF NOT EXISTS ${DATABASEN};"

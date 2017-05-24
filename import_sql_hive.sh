@@ -79,7 +79,7 @@ if [ $? -eq 0 ];
 fi
 
 # finds if the job exists
-numJobs=$(sqoop job \--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop \--list | grep -c "practical_exercise_1.activitylog")
+numJobs=$(sqoop job \--meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop \--list | grep -w -c "practical_exercise_1.activitylog")
 echo "$numJobs jobs exist with that name"
 
 if [ $numJobs -eq 0 ];
