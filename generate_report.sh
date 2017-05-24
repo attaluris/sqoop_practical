@@ -38,6 +38,7 @@ fi
 
 # Robert’s user_report commands
 hive -e "USE ${DATABASEN};
+CREATE TABLE IF NOT EXISTS user_report (id BIGINT, total_updates INT, total_inserts INT, total_deletes INT, last_activity_type STRING, is_active BOOLEAN, upload_count INT);
 INSERT OVERWRITE TABLE user_report SELECT
 u.id,
 CASE WHEN a_update.total_updates IS NULL THEN 0 ELSE a_update.total_updates END AS total_updates,
@@ -63,6 +64,7 @@ fi
 
 # active_user_report commands
 hive -e "USE ${DATABASEN};
+CREATE TABLE IF NOT EXISTS active_user_report (id BIGINT, total_updates INT, total_inserts INT, total_deletes INT, last_activity_type STRING, upload_count INT);
 INSERT OVERWRITE TABLE active_user_report SELECT
 ur.id,
 CASE WHEN a_update.total_updates IS NULL THEN 0 ELSE a_update.total_updates END AS total_updates,
