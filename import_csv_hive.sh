@@ -38,7 +38,7 @@ exit 1
 fi
 
 # corrects file names for colons and periods
-cd user_upload
+cd /home/cloudera/Downloads/practical/user_upload
 if [ $? -eq 0 ];
 then echo "entered user_upload"
 else echo "could not enter user_upload"
@@ -68,7 +68,7 @@ for fname in *; do
     fi
 done
 
-cd ..
+cd /home/cloudera/Downloads/practical
 
 # makes sure that the destination folders exist
 hadoop fs -mkdir -p /app/data/user_upload
@@ -78,7 +78,7 @@ if [ $? -eq 0 ];
     exit 1
 fi
 
-mkdir -p processed
+mkdir -p /home/cloudera/Downloads/practical/processed
 if [ $? -eq 0 ];
     then echo "processed exists"
     else echo "could not create processed"
@@ -86,7 +86,7 @@ if [ $? -eq 0 ];
 fi
 
 # puts the files in their necessary places
-for fname in user_upload/*; do
+for fname in /home/cloudera/Downloads/practical/user_upload/*; do
     hadoop fs -put $fname /app/data/user_upload
     if [ $? -eq 0 ]; 
 	then echo "added new dumps to HDFS"
@@ -94,7 +94,7 @@ for fname in user_upload/*; do
 	exit 1
     fi
 
-    mv $fname processed
+    mv $fname /home/cloudera/Downloads/practical/processed
     if [ $? -eq 0 ];
 	then echo "moved new dumps to processed"
 	else echo "could not move new dumps to processed"

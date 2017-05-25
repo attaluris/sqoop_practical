@@ -92,7 +92,7 @@ def create_csv():
 
     users = User.select()
     user_count = len(users)
-    csv_filename = "user_upload_dump." + str(datetime.datetime.now()).replace(" ", "") + ".csv"
+    csv_filename = "/home/cloudera/Downloads/practical/user_upload/user_upload_dump." + str(datetime.datetime.now()).replace(" ", "") + ".csv"
     f = open(csv_filename, 'w')
     csv_header = "user_id,file_name,timestamp"
     f.write(csv_header + "\n")
